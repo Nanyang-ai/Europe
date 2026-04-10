@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security & Operational Risk Dashboard — Netherlands &amp; Belgium</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F4F3EF;
+    --surface:   #FFFFFF;
+    --border:    #DDDBD4;
+    --border-md: #C8C5BC;
+    --text-1:    #1A1916;
+    --text-2:    #5A5850;
+    --text-3:    #8C8A82;
+
+    --low-bg:    #EAF3DE; --low-tx:   #2E5A0E;
+    --mod-bg:    #FEF3E2; --mod-tx:   #7A4A0A;
+    --mhi-bg:    #FDEBD0; --mhi-tx:   #8B3A0F;
+
+    --str-bg:    #E8EFF8; --str-tx:   #1E4480;
+    --eme-bg:    #FCEEED; --eme-tx:   #9B2B2B;
+    --spi-bg:    #EEE8F8; --spi-tx:   #4A2E8A;
+
+    --nl: #C8441A;
+    --be: #1A4EC8;
+
+    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-1);
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header { margin-bottom: 2rem; }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .classification {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-3);
+    border: 1px solid var(--border-md);
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  h1 {
+    font-family: var(--font-mono);
+    font-size: clamp(15px, 2.2vw, 20px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text-1);
+    line-height: 1.3;
+  }
+  .meta-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  /* ── Callout ── */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--text-1);
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1.75rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.5rem;
+  }
+  .callout ul { list-style: none; padding: 0; }
+  .callout ul li {
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.6;
+    padding-left: 1.1em;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .callout ul li:last-child { margin-bottom: 0; }
+  .callout ul li::before { content: "–"; position: absolute; left: 0; color: var(--text-3); }
+  .callout ul li strong { color: var(--text-1); font-weight: 500; }
+
+  /* ── Rating scale ── */
+  .scale-note {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .scale-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .scale-items { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .scale-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-2); }
+  .scale-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── Tag legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-bottom: 1.75rem;
+    align-items: center;
+  }
+  .li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2); white-space: nowrap; }
+
+  /* ── Grid ── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ── Country Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-flag-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .flag-bar { width: 4px; height: 22px; border-radius: 2px; flex-shrink: 0; }
+  .flag-nl { background: var(--nl); }
+  .flag-be { background: var(--be); }
+  .ctitle { font-size: 16px; font-weight: 500; color: var(--text-1); }
+  .csub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* ── Domain ── */
+  .domain-header {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 0.6rem 1.25rem 0.4rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Indicator Row ── */
+  .indicator {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .indicator:last-child { border-bottom: none; }
+  .ind-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .ind-label { font-size: 12.5px; font-weight: 500; color: var(--text-1); flex: 1; line-height: 1.3; }
+  .ind-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .low { background: var(--low-bg); color: var(--low-tx); }
+  .mod { background: var(--mod-bg); color: var(--mod-tx); }
+  .mhi { background: var(--mhi-bg); color: var(--mhi-tx); }
+
+  .tags { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .t-str { background: var(--str-bg); color: var(--str-tx); }
+  .t-eme { background: var(--eme-bg); color: var(--eme-tx); }
+  .t-spi { background: var(--spi-bg); color: var(--spi-tx); }
+
+  /* ── Bullet list ── */
+  .just-list { list-style: none; padding: 0; }
+  .just-list li {
+    font-size: 11.5px;
+    color: var(--text-2);
+    line-height: 1.6;
+    padding-left: 1.1em;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .just-list li:last-child { margin-bottom: 0; }
+  .just-list li::before { content: "–"; position: absolute; left: 0; color: var(--text-3); }
+  .just-list li strong { color: var(--text-1); font-weight: 500; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    line-height: 1.6;
+  }
+
+  @media print {
+    body { padding: 1rem; background: white; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <h1>Security &amp; Operational Risk Dashboard<br>Netherlands · Belgium</h1>
+      <span class="classification">For Internal Use</span>
+    </div>
+    <div class="meta-row">
+      <span>📅 10 April 2026</span>
+      <span>Sources: NCTV · CUTA/OCAM · NZ MFAT · Dutch UN Submission · OSAC · CBS · Belga · Smartraveller · Open-source</span>
+    </div>
+  </div>
+
+  <!-- Callout -->
+  <div class="callout">
+    <div class="callout-title">Context</div>
+    <ul>
+      <li>Both countries are operating under <strong>elevated but stable official threat levels</strong> that have been in place for 16–17 months (NL: NCTV Level 4/5; BE: CUTA Level 3/4), driven primarily by Middle East conflict spillover.</li>
+      <li>Recent HAYI-attributed attacks on Jewish and pro-Israel sites across both countries have caused <strong>no casualties</strong> and no indiscriminate targeting of civilian or business infrastructure.</li>
+    </ul>
+  </div>
+
+  <!-- Rating scale -->
+  <div class="scale-note">
+    <span class="scale-label">Rating scale</span>
+    <div class="scale-items">
+      <div class="scale-item"><span class="scale-dot" style="background:#2E5A0E;"></span> Low — peaceful, managed, no clashes</div>
+      <div class="scale-item"><span class="scale-dot" style="background:#C47A1A;"></span> Moderate — some unruly behaviour or isolated clashes</div>
+      <div class="scale-item"><span class="scale-dot" style="background:#B85010;"></span> Moderate-High — recurring clashes, heightened threat</div>
+      <div class="scale-item"><span class="scale-dot" style="background:#9B2B2B;"></span> High — significant or prolonged clashes</div>
+    </div>
+  </div>
+
+  <!-- Tag legend -->
+  <div class="legend">
+    <div class="li"><span class="tag t-str">Structural</span>&nbsp;Chronic / ongoing baseline</div>
+    <div class="li"><span class="tag t-eme">Emerging</span>&nbsp;New development this week</div>
+    <div class="li"><span class="tag t-spi">ME Spillover</span>&nbsp;Middle East conflict-linked</div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="grid">
+
+    <!-- ══════════ NETHERLANDS ══════════ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-flag-row">
+          <div class="flag-bar flag-nl"></div>
+          <div>
+            <div class="ctitle">Netherlands</div>
+            <div class="csub">PM Jetten minority coalition (D66 / VVD / CDA) · Sworn in 23 Feb 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domain-header">Security Domain</div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Civil unrest</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span><span class="tag t-spi">ME Spillover</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>Protests are frequent but peaceful and managed; no sustained clashes or disorder in the past 1–2 weeks.</li>
+          <li>Rival Iran war demonstrations in The Hague (late March) required police separation of opposing groups — contained without incident.</li>
+          <li>Protest frequency has approximately doubled since October 2023, largely attributable to the Middle East conflict; volume is elevated but character remains non-violent.</li>
+          <li>National civil service strike scheduled for <strong>14 April</strong> — expect disruption to public services, not public disorder.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Political violence &amp; terrorism</span>
+          <div class="ind-right">
+            <span class="badge mod">Moderate</span>
+            <div class="tags"><span class="tag t-str">Structural</span><span class="tag t-eme">Emerging</span><span class="tag t-spi">ME Spillover</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>NCTV Level 4/5 "Substantial" reconfirmed Dec 2025; held continuously since Dec 2023.</li>
+          <li>7 April Dutch UN submission flagged accelerating online radicalisation among minors and rise of nihilistic extremism with no specific ideological anchor.</li>
+          <li>HAYI-attributed attacks: Jewish school (Amsterdam, Mar), synagogue (Rotterdam, Mar), pro-Israel centre (Nijkerk, 1 Apr) — all low-yield devices, all at night, <strong>zero casualties</strong>.</li>
+          <li>Dutch prosecutors confirmed Rotterdam attack was "aimed at instilling fear in the Jewish community" — targeted intimidation, not mass-casualty intent.</li>
+          <li><strong>No indiscriminate attacks on general civilian or business targets in the past 1–2 weeks.</strong></li>
+          <li>At least 10 arrests in the Netherlands; suspects are predominantly teenagers recruited via Snapchat/Telegram.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Violent crime</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>One of the lowest homicide rates in Europe (0.6 per 100,000).</li>
+          <li>CBS 2025 Safety Monitor confirms violent crime incidence is <strong>stable year-on-year</strong>.</li>
+          <li>Amsterdam and The Hague police issued routine advisories this week for distraction thefts in tourist areas — a recurring seasonal pattern, not an escalation.</li>
+        </ul>
+      </div>
+
+      <div class="domain-header">Political Domain</div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Rule of law</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>Independent judiciary functioning normally; no systemic concerns around arbitrary arrest or detention.</li>
+          <li>Civil society debate around surveillance of Muslim communities and protest permit restrictions remains within normal democratic parameters.</li>
+          <li>Not flagged by any major international rule-of-law monitoring body.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Regime / political instability</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>No active no-confidence motion, coalition breakdown, or defection threats reported.</li>
+          <li>Government is 7 weeks old and operating normally; legislative priorities have been set without incident.</li>
+          <li>Minority status reflects how the government was formed, not evidence of imminent collapse.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Interstate tensions</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>NATO and EU member in good standing; Jetten government is actively pro-EU and pro-NATO.</li>
+          <li>No active bilateral disputes of consequence.</li>
+          <li>Deepening cooperation with Belgium and Benelux partners on energy, defence, and semiconductor supply chains.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══════════ BELGIUM ══════════ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-flag-row">
+          <div class="flag-bar flag-be"></div>
+          <div>
+            <div class="ctitle">Belgium</div>
+            <div class="csub">PM De Wever "Arizona" coalition · In office since Jan 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domain-header">Security Domain</div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Civil unrest</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>Labour strikes and demonstrations are union-organised, scheduled in advance, and overwhelmingly non-violent.</li>
+          <li>De Lijn transport strikes running across Flanders this week (<strong>7–10 Apr</strong>) — expect public transport disruption, not disorder.</li>
+          <li>The 12 March Brussels demonstration (80,000 participants) had a brief, isolated confrontation near the US Embassy; quickly contained, not indicative of a broader pattern of clashes.</li>
+          <li>Pro-Palestinian demonstrations near diplomatic areas continue; peaceful and monitored by police.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Political violence &amp; terrorism</span>
+          <div class="ind-right">
+            <span class="badge mod">Moderate</span>
+            <div class="tags"><span class="tag t-str">Structural</span><span class="tag t-eme">Emerging</span><span class="tag t-spi">ME Spillover</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>CUTA Level 3/4 "Serious" — NZ MFAT reconfirmed 9 April; attacks assessed as "possible and probable."</li>
+          <li>Crowded venues, transport hubs, and EU/NATO institutions named as specific target categories by CUTA.</li>
+          <li>HAYI-attributed attacks: Liège synagogue bombing (9 Mar), Antwerp Jewish quarter car burning (24 Mar) — <strong>zero casualties</strong> in both incidents.</li>
+          <li>Belgium deployed military to guard Jewish sites from 16 Mar; heightened police presence near Brussels diplomatic and transport hubs this week.</li>
+          <li><strong>No indiscriminate attacks on general civilian or business targets in the past 1–2 weeks.</strong></li>
+          <li>Jewish community remains the primary identified target set; general public infrastructure is not under named threat.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Violent crime</span>
+          <div class="ind-right">
+            <span class="badge mod">Moderate</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>Brussels has the <strong>second-highest murder rate in the EU</strong>, driven by drug trafficking through the Port of Antwerp.</li>
+          <li>2025 saw a record 96 shootings in Brussels — a chronic structural issue, not an acute escalation.</li>
+          <li>Violence is concentrated in specific residential areas; not typically directed at business travellers or diplomatic visitors.</li>
+          <li>No acute escalation this week.</li>
+        </ul>
+      </div>
+
+      <div class="domain-header">Political Domain</div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Rule of law</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span><span class="tag t-eme">Emerging</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>Functioning independent judiciary; no systemic concerns around arbitrary detention.</li>
+          <li>Controversial draft law approved <strong>3 Apr 2026</strong> would allow police with judicial warrant to enter homes for deportations — drawing civil society rights concerns.</li>
+          <li>Legislation subject to normal Council of State and parliamentary scrutiny; not flagged as a systemic failure by EU or Council of Europe monitoring bodies.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Regime / political instability</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>No active no-confidence motion, coalition breakdown, or defection threats reported at the federal level.</li>
+          <li>De Wever's coalition has been functional since January 2025 and has weathered sustained labour unrest without political crisis.</li>
+          <li>Brussels-Capital regional governance deadlock (600+ days without a government) is a sub-national dysfunction and does not threaten federal government survival.</li>
+        </ul>
+      </div>
+
+      <div class="indicator">
+        <div class="ind-top">
+          <span class="ind-label">Interstate tensions</span>
+          <div class="ind-right">
+            <span class="badge low">Low</span>
+            <div class="tags"><span class="tag t-str">Structural</span></div>
+          </div>
+        </div>
+        <ul class="just-list">
+          <li>NATO and EU member; hosts both headquarters in Brussels.</li>
+          <li>No active interstate disputes of consequence.</li>
+          <li>Minor diplomatic row with the US in Feb 2026 over ambassador comments on antisemitism was resolved quickly.</li>
+          <li>Belgium–Netherlands bilateral relations remain among the closest in Europe.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Prepared: 10 April 2026</span>
+    <span>Sources: NCTV · CUTA/OCAM · NZ MFAT · Dutch UN Submission (7 Apr 2026) · OSAC · CBS Safety Monitor 2025 · Belga News Agency · Smartraveller · JTA · PBS NewsHour · Al-Monitor · Atlantic Council · Strike Tracker · ICCT</span>
+    <span>This document is for internal analytical purposes only.</span>
+  </div>
+
+</div>
+</body>
+</html>
